@@ -14,11 +14,11 @@
 <body>
   <div class="container">
     <div class="jumbotron text-white bg-info">
-      <h1 class="display-4 text-center">Employee Tracker Sheet</h1>
+      <h1 class="display-4 text-center">Train Schedule</h1>
     </div>
     <div class="borderish">
       <div class="card border-info border-5">
-        <h5 class="card-header bg-info text-white">Employee List</h5>
+        <h5 class="card-header bg-info text-white">Trains</h5>
         <div class="card-body">
 
           <table class="table table-hover">
@@ -29,7 +29,7 @@
               <th scope="col">Next Arrival</th>
               <th scope="col">Minutes away</th>
             </thead>
-            <tbody id="employee-data">
+            <tbody id="train-data">
               <!-- append here -->
             </tbody>
           </table>
@@ -52,7 +52,7 @@
             <input type="text" class="form-control" id="destination-input" aria-describedby="role" placeholder="Destination">
           </div>
           <div class="form-group">
-            <label>First Train Time</label>
+            <label>First Train Time (In military time</label>
             <input type="text" class="form-control" id="start-input" aria-describedby="Start-Date" placeholder="??:??">
           </div>
           <div class="form-group">
@@ -104,9 +104,9 @@
 
       var name = $("#name-input").val().trim();
       var destination = $("#destination-input").val().trim();
-      var start = $("#start-input").val().trim();
+      var start = moment($("#start-input").val().trim(),"HH:mm").subtract(10,"years").format("X");
       var frequency = parseInt($("#frequency-input").val().trim());
-
+      
       database.ref().push({
         name: name,
         destination: destination,
@@ -124,67 +124,17 @@
       // startDate.val("");
       // monthlyRate.val("");
 
-      database.ref().on("child_added", function (childSnapshot) {
-        console.log(childSnapshot.val());
-
-        var date = new Date();
+        database.ref().on("child_added", function (childSnapshot) {
         
-        currentDate = moment().format();
-        currentMinute = moment().format("m");
-        currentHour = moment().format("H");
-        currentTime = moment().format("h:mm")
-
-        // var testTime = moment().format( "10:41 am");
-        //console.log(moment("2/14/2001", "MM/DD/YYYY").diff(moment(randomDate, "MM/DD/YYYY"), "days"))
-        //var timeFromNow = moment(testTime,"h:mm").diff(moment(currentTime,"h:mm"),"minutes");
-       
-        
-        // var currentHour = date.getUTCHours()-4;
-        // var currentMinute = date.getUTCMinutes();
-        // var currentTime = currentHour + ":" + currentMinute;
-        // console.log(currentTime);
-
-        // var arrivalMinute = minute;
-        // var arrivalHour = hour;
-        // var arrivalTime = arrivalHour + ":" + arrivalMinute;
-        // var frequency = 50;
-        // var startMinute;
-        // var startHour;
-        // var startTime = startMinute + ":" + startHour;
-
-        //add frequency     
-
-
-
         var childName = childSnapshot.val().name;
-        var childDestination = childSnapshot.val().role;
+        var childDestination = childSnapshot.val().destination;
         var childStart = childSnapshot.val().start;
-        console.log(childStart + " this is startTime");
-        var timeFromNow = moment(childStart,"h:mm ").diff(moment(currentTime,"h:mm a"),"minutes");
-        
-        if(timeFromNow < 0)
-        {
-          console.log("is fucking negative");
-          console.log(timeFromNow);
-        }
-        console.log(currentTime);
-        console.log("time from now" + timeFromNow);
         var childFrequency = childSnapshot.val().frequency;
         
-        var arrivalMinute =  + childFrequency;
-        var arrivalTime;
-        console.log(arrivalMinute);
-        // var arrivalHour = startHour;
-        // if (arrivalMinute >= 60) {
-        //   arrivalHour++;
-        //   arrivalMinute = arrivalMinute - 60;
-        //   arrivalTime = arrivalHour + ":" + arrivalMinute;
-        //   if (arrivalHour >= 24) {
-        //     arrivalHour = arrivalHour - 24;
-        //     arrivalTime = arrivalHour + ":" + arrivalMinute;
-        //   }
-        // }
-   
+        
+        var remainder = moment().diff(moment.unix(childStart),"minutes") % frequency;
+        var minutes = childFrequency - remainder;
+        var arriveNew = moment().add(minutes,"m").format("hh:mm A");
 
 
         
@@ -198,23 +148,16 @@
         col1.append(childName);
         col2.append(childDestination);
         col3.append(childFrequency);
-        col4.append(timeFromNow);
-        col5.append();
+        col4.append(arriveNew);
+        col5.append(minutes);
 
         tr.append(col1);
         tr.append(col2);
         tr.append(col3);
         tr.append(col4);
-        // var tdName = $("<td>").text(childName);
-        // var tdRole = $("<td>").text(childRole);
-        // var tdStart = $("<td>").text(childStart);
-        // var tdRate = $("<td>").text(childRate);
+        tr.append(col5);
 
-
-
-        // tr.append(tdName);
-
-        $("#employee-data").append(tr);
+        $("#train-data").append(tr);
 
 
 
